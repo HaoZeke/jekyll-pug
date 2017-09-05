@@ -4,6 +4,7 @@ require 'open3'
 module Jekyll
     class PugPartialTag < Liquid::Tag
         isHTML = false
+        isMD   = false
 
         def initialize(tag_name, file, tokens)
             super
@@ -27,8 +28,14 @@ module Jekyll
                 isHTML = true
             end
 
+            if @file !~ /\.md$/
+                isMD = false
+            else
+                isMD = true
+            end
+
             if @file !~ /\.pug$/
-                if !isHTML
+                if !isHTML && !isMD
                     @file << ".pug"
                 end
             end
@@ -37,7 +44,7 @@ module Jekyll
                 choices = Dir['**/*'].reject { |x| File.symlink?(x) }
                 if choices.include?(@file)
                     source     = File.read(@file)
-                    if !isHTML
+                    if !isHTML && !isMD
                         conversion = Pug.compile(source, {"filename" => includes_dir + "/."})
                     else
                         conversion = source
